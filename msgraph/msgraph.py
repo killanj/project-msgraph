@@ -1,5 +1,6 @@
 import os
 import requests
+import base64
 
 class MsgraphError:
     def __init__(self, message: str, status_code: int | None, response_content: str | None):
@@ -62,7 +63,7 @@ class Msgraph:
 
         Requires:
 
-        Running mode. "audience" for user-specified audience, "graph" for Graph API.
+        Running mode. "audience" for user-specified audience, "graph" for Graph API, "outlook" for, well, Outlook.
 
         This function requires that you declare this class with a valid refresh token and a valid client secret to work.
 
@@ -78,6 +79,8 @@ class Msgraph:
                 scope = f"https://{self.audience}/.default"
             case "graph":
                 scope = "https://graph.microsoft.com/.default"
+            case "outlook":
+                scope = "Mail.Read User.Read"
             case _:
                 raise Exception("Mode is invalid or not specified. Unable to get a scope. Please specify a mode.")
         
@@ -203,3 +206,65 @@ class Msgraph:
         response = requests.put(url, headers=headers, data=content)
 
         return response.status_code
+    
+    def send_email(self, token: str, subject: str, body: str, target_emails: list[str], attachments: list[str] = None) -> MsgraphResponse | MsgraphError:
+        """
+        Sends an email to the target user(s), with attachments if specified.
+        If attachments are needed to be specified, they must be represented as a list of absolute paths to the files.
+        
+        Requires:
+        
+        Access token with the Outlook scope.
+
+        Subject of the email.
+
+        Body of the email.
+
+        List of recipients.
+
+        Returns:
+        
+        On success: MsgraphResponse object.
+
+        On fail: MsgraphError object.
+        """
+        
+        url = "https://graph.microsoft.com/v1.0/me/sendMail"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+        }
+
+        body = {
+            "subject": subject,
+            "body": {
+                "content": body
+            },
+            "toRecipients": [
+                {
+                    "emailAddress": {
+                        "address": email
+                    }
+                } 
+                for email in target_emails
+            ]
+        }
+        
+        
+        if attachments:
+            body["attachments"] = [
+                {
+                    "@odata.type": "#microsoft.graph.fileAttachment",
+                    "name": os.path.basename(attachment),
+                    "contentBytes": base64.b64encode(open(attachment, 'rb').read()).decode('utf-8')
+                }
+                for attachment in attachments
+            ]
+
+        response = requests.post(url, headers=headers, json=body)
+
+        if response.ok:
+            return MsgraphResponse("Email sent successfully", response.status_code, response.json())
+        else:
+            return MsgraphError("Failed to send email.", response.status_code, response.text)
+
