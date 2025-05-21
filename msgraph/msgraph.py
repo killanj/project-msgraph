@@ -252,14 +252,17 @@ class Msgraph:
         
         
         if attachments:
-            body["attachments"] = [
-                {
-                    "@odata.type": "#microsoft.graph.fileAttachment",
-                    "name": os.path.basename(attachment),
-                    "contentBytes": base64.b64encode(open(attachment, 'rb').read()).decode('utf-8')
-                }
-                for attachment in attachments
-            ]
+            try:
+                body["attachments"] = [
+                    {
+                        "@odata.type": "#microsoft.graph.fileAttachment",
+                        "name": os.path.basename(attachment),
+                        "contentBytes": base64.b64encode(open(attachment, 'rb').read()).decode('utf-8')
+                    }
+                    for attachment in attachments
+                ]
+            except Exception as e:
+                return MsgraphError(f"Failed to attach files: {e}", None, None)
 
         response = requests.post(url, headers=headers, json=body)
 
