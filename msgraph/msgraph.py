@@ -272,4 +272,70 @@ class Msgraph:
             return MsgraphResponse("Email sent successfully", response.status_code, response.json())
         else:
             return MsgraphError("Failed to send email.", response.status_code, response.text)
+        
+    def list_files_sharepoint(self, token: str, siteid: str, driverid: str, path: str = "") -> MsgraphResponse | MsgraphError:
+        """
+        Lists all files in a chosen Sharepoint folder.
+        
+        Requires:
+        
+        Access token with the Graph API scope.
+        
+        Target site's id.
+        
+        Target site's drive id.
+        
+        Returns:
+        
+        On success: MsgraphResponse object.
+        
+        On fail: MsgraphError object.
+        """
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        if path:
+            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root:/{path}/children", headers=headers)
+        else:
+            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root/children", headers=headers)
 
+        if response.ok:
+            return MsgraphResponse("Successfully retrieved files.", response.status_code, response.json())
+        else:
+            return MsgraphError("Failed to retrieve files.", response.status_code, response.text)
+        
+    def download_file_sharepoint(self, token: str, siteid: str, driverid: str, path: str, filename: str, localpath: str) -> MsgraphResponse | MsgraphError:
+        """
+        Downloads a file from Sharepoint.
+        
+        Requires:
+        
+        Access token with the Graph API scope.
+        
+        Target site's id.
+        
+        Target site's drive id.
+        
+        Path to the file in Sharepoint. (It has to end with "/")
+        
+        Name of the file to be downloaded.
+        
+        Local path to save the file.
+        
+        Returns:
+        
+        On success: MsgraphResponse object.
+        
+        On fail: MsgraphError object.
+        """
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root:/{path}{filename}:/content", headers=headers)
+
+        if response.ok:
+            with open(f"{localpath}/{filename}", "wb") as file:
+                file.write(response.content)
+            return MsgraphResponse("Successfully downloaded file.", response.status_code, f"{localpath}/{filename}")
+        else:
+            return MsgraphError("Failed to download file.", response.status_code, response.text)
