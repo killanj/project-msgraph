@@ -16,7 +16,7 @@ class MsgraphError:
         })
         
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.message!r}, {self.status_code}, {self.response_content!r})"
+        return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.response_content})"
     
     def as_dict(self) -> str:
         return {
@@ -39,7 +39,7 @@ class MsgraphResponse:
         })
     
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.message!r}, {self.status_code}, {self.data!r})"
+        return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.data})"
     
     def as_dict(self) -> dict:
         return {
