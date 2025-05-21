@@ -1,18 +1,64 @@
 import os
 import requests
 
+class MsgraphError:
+    def __init__(self, message: str, status_code: int | None, response_content: str | None):
+        self.message = message
+        self.status_code = status_code
+        self.response_content = response_content
+    
+    def __str__(self):
+        return str({
+            "message": self.message,
+            "status_code": self.status_code,
+            "response_content": self.response_content
+        })
+        
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.message!r}, {self.status_code}, {self.response_content!r})"
+    
+    def as_dict(self) -> str:
+        return {
+            "message": self.message,
+            "status_code": self.status_code,
+            "response_content": self.response_content
+        }
+
+class MsgraphResponse:
+    def __init__(self, message: str, status_code: int, data: str):
+        self.message = message
+        self.status_code = status_code
+        self.data = data
+    
+    def __str__(self) -> str:
+        return str({
+            "message": self.message,
+            "status_code": self.status_code,
+            "data": self.data
+        })
+    
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.message!r}, {self.status_code}, {self.data!r})"
+    
+    def as_dict(self) -> dict:
+        return {
+            "message": self.message,
+            "status_code": self.status_code,
+            "data": self.data
+        }
 
 class Msgraph:
-    def __init__(self, tenantid: str, clientid: str, clientsecret: str, audience: str, refresh_token:str) -> None:
-        self.tenantid = tenantid
-        self.clientid = clientid  
-        self.clientsecret = clientsecret
-        self.audience = audience
-        self.refresh_token = refresh_token
+    def __init__(self, credentials: dict):
+        self.tenantid = credentials['tenantid']
+        self.clientid = credentials['clientid']
+        self.clientsecret = credentials['clientsecret']
+        self.audience = credentials['audience']
+        self.refresh_token = credentials['refresh_token']
 
-    def get_access_token(self, mode: str):
+    def get_access_token(self, mode: str) -> MsgraphResponse | MsgraphError:
         """
-        Gets the access token. The "mode" parameter changes the audience scope between the user-specified audience and the Graph API.
+        Gets the access token. The "mode" parameter changes the audience scope between the user-specified audience and the Graph API. 
+        Be aware, calling this function without a valid mode will raise an exception.
 
         Requires:
 
@@ -22,35 +68,53 @@ class Msgraph:
 
         Returns:
 
-        Access token as a string.
+        On success: MsgraphResponse object
+
+        On fail: MsgraphError object
         """
 
         match mode:
             case "audience":
-                scope = self.audience
+                scope = f"https://{self.audience}/.default"
             case "graph":
                 scope = "https://graph.microsoft.com/.default"
             case _:
                 raise Exception("Mode is invalid or not specified. Unable to get a scope. Please specify a mode.")
         
+        
         if not self.refresh_token or self.refresh_token == "":
-            raise Exception("Refresh token missing or invalid. Declare this class with a valid refresh token.")
+            message = "Refresh token missing or invalid. Declare this class with a valid refresh token."
+            return MsgraphError(message, None, None)
         if not self.clientsecret or self.clientsecret == "":
-            raise Exception("Client secret missing or invalid. Declare this class with a valid client secret.")
+            message = "Client secret missing or invalid. Declare this class with a valid client secret."
+            return MsgraphError(message, None, None)
+        if not self.tenantid or self.tenantid == "":
+            message = "Tenant ID missing or invalid. Declare this class with a valid tenant ID."
+            return MsgraphError(message, None, None)
         
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        r = requests.post(
+        
+        data = {
+            "client_id": self.clientid,
+            "scope": scope,
+            "refresh_token": self.refresh_token,
+            "grant_type": "refresh_token",
+            "client_secret": self.clientsecret
+        }
+        
+        response = requests.post(
             url=f'https://login.microsoftonline.com/{self.tenantid}/oauth2/v2.0/token',
             headers=headers,
-            data=f'client_id={self.clientid}&scope={scope}&refresh_token={self.refresh_token}&grant_type=refresh_token&client_secret={self.clientsecret}'
+            data=data
         )
 
-        print(r.status_code)
-        print(r.json())
-        access_token = r.json()["access_token"]
-        return access_token
+        if response.ok:
+            return MsgraphResponse("Token retrieved successfully", response.status_code, response.json()["access_token"])
+        else:
+            return MsgraphError("Failed to fetch access_token.", response.status_code, response.text)
+            
 
-    def get_siteid(self, token: str, site: str) -> str | None:
+    def get_siteid(self, token: str, site: str) -> MsgraphResponse | MsgraphError:
         """
         Gets the id of the target site within your audience.
         
@@ -62,19 +126,19 @@ class Msgraph:
 
         Returns:
 
-        On success: site id as a string.
+        On success: MsgraphResponse object
 
-        On fail: Nonetype object
+        On fail: MsgraphError object
         """
         headers = {"Authorization": f"Bearer {token}"}
-        r = requests.get(f'https://graph.microsoft.com/v1.0/sites/{self.audience}:/sites/{site}', headers=headers)
+        response = requests.get(f'https://graph.microsoft.com/v1.0/sites/{self.audience}:/sites/{site}', headers=headers)
         
-        if r.ok:
-            return r.json().get("id")
+        if response.ok:
+            return MsgraphResponse("Successfully retrieved site id.", response.status_code, response.json().get("id"))
         else:
-            return None
+            return MsgraphError(f"Failed to fetch siteid for {self.audience}/sites/{site}", response.status_code, response.text)
 
-    def get_driverid(self, token: str, siteid: str):
+    def get_driverid(self, token: str, siteid: str) -> MsgraphResponse | MsgraphError:
         """
         Gets the id of the target site id's root drive.
 
@@ -86,20 +150,20 @@ class Msgraph:
 
         Returns:
 
-        On success: drive id as a string.
+        On success: MsgraphResponse object.
 
-        On fail: Nonetype object
+        On fail: MsgraphError object.
         """
         headers = {"Authorization": f"Bearer {token}"}
         
-        r = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives", headers=headers)
+        response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives", headers=headers)
         
-        if r.ok:
-            return r.json().get("value")[0]['id']
+        if response.ok:
+            return MsgraphResponse("Successfully retrieved site id.", response.status_code, response.json().get("value")[0]['id'])
         else:
-            return None
+            return MsgraphError(f"Failed to fetch driver id for site id '{siteid}'.", response.status_code, response.text)
 
-    def upload_to_drive(self, token, driveid, filepath, destination, mimetype = ""):
+    def upload_to_drive(self, token, driveid, filepath, destination, mimetype = "") -> int:
         """
         Uploads a file to Sharepoint.
 
@@ -119,14 +183,14 @@ class Msgraph:
 
         Status code of response.
         """
-        if mimetype == "":
-            headers = {
-                "Authorization": f"Bearer {token}"
-            }
-        else:
+        if mimetype:
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Content-Type": mimetype
+            }
+        else:
+            headers = {
+                "Authorization": f"Bearer {token}"
             }
         
         filename = os.path.basename(filepath)
