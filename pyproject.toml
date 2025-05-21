@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "py-ms-graph"
+version = "0.1.0"
+description = "Utility for abstracting connections to Microsoft's Graph API and Sharepoint."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "Johanes Killan Berto Alves", email = "killanalvesj@gmail.com"}
+]
+keywords = ["microsoft-graph", "sharepoint", "api", "msgraph", "upload", "automation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+"requests>=2.32.3"
+]
+
+[project.urls]
+Homepage = "https://github.com/killanj/project-msgraph"
+Repository = "https://github.com/killanj/project-msgraph"
+Issues = "https://github.com/killanj/project-msgraph/issues"
+
+[tool.setuptools]
+packages = ["py-ms-graph"]
