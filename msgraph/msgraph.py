@@ -58,14 +58,11 @@ class Msgraph:
 
     def get_access_token(self, mode: str) -> MsgraphResponse | MsgraphError:
         """
-        Gets the access token. The "mode" parameter changes the audience scope between the user-specified audience and the Graph API. 
-        Be aware, calling this function without a valid mode will raise an exception.
+        Gets the access token. The "mode" parameter changes the audience scope between the user-specified audience, Outlook and the Graph API. 
 
         Requires:
 
         Running mode. "audience" for user-specified audience, "graph" for Graph API, "outlook" for, well, Outlook.
-
-        This function requires that you declare this class with a valid refresh token and a valid client secret to work.
 
         Returns:
 
@@ -168,7 +165,7 @@ class Msgraph:
         else:
             return MsgraphError(f"Failed to fetch driver id for site id '{siteid}'.", response.status_code, response.text)
 
-    def upload_to_drive(self, token, driveid, filepath, destination, mimetype = "") -> int:
+    def upload_to_drive(self, token, driveid, filepath, destination, mimetype = "") -> MsgraphResponse | MsgraphError:
         """
         Uploads a file to Sharepoint.
 
@@ -207,7 +204,10 @@ class Msgraph:
         
         response = requests.put(url, headers=headers, data=content)
 
-        return response.status_code
+        if response.ok:
+            MsgraphResponse("File uploaded successfully", response.status_code, response.text)
+        else:
+            MsgraphError("Failed to upload file.", response.status_code, response.text)
     
     def send_email(self, token: str, subject: str, body: str, target_emails: list[str], attachments: list[str] = None) -> MsgraphResponse | MsgraphError:
         """
