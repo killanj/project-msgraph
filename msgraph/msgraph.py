@@ -24,6 +24,9 @@ class MsgraphError:
             "status_code": self.status_code,
             "response_content": self.response_content
         }
+    
+    def is_err(self) -> bool:
+        return True
 
 class MsgraphResponse:
     def __init__(self, message: str, status_code: int, data: str):
@@ -47,6 +50,9 @@ class MsgraphResponse:
             "status_code": self.status_code,
             "data": self.data
         }
+    
+    def is_err(self) -> bool:
+        return False
 
 class Msgraph:
     def __init__(self, credentials: dict):
