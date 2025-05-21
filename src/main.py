@@ -3,13 +3,14 @@ import requests
 
 
 class Msgraph:
-    def __init__(self, clientid: str, clientsecret: str, audience: str, refresh_token:str) -> None:
+    def __init__(self, tenantid: str, clientid: str, clientsecret: str, audience: str, refresh_token:str) -> None:
+        self.tenantid = tenantid
         self.clientid = clientid  
         self.clientsecret = clientsecret
         self.audience = audience
         self.refresh_token = refresh_token
 
-    def get_access_token(self, mode):
+    def get_access_token(self, mode: str):
         """
         Gets the access token. The "mode" parameter changes the audience scope between the user-specified audience and the Graph API.
 
@@ -32,14 +33,14 @@ class Msgraph:
             case _:
                 raise Exception("Mode is invalid or not specified. Unable to get a scope. Please specify a mode.")
         
-        if not self.refresh_token or self.refresh_token = "":
+        if not self.refresh_token or self.refresh_token == "":
             raise Exception("Refresh token missing or invalid. Declare this class with a valid refresh token.")
-        if not self.clientsecret or self.clientsecret = "":
+        if not self.clientsecret or self.clientsecret == "":
             raise Exception("Client secret missing or invalid. Declare this class with a valid client secret.")
         
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         r = requests.post(
-            url='https://login.microsoftonline.com/cdd5d16c-6158-4cfb-bb8e-02a0f9f1236b/oauth2/v2.0/token',
+            url=f'https://login.microsoftonline.com/{self.tenantid}/oauth2/v2.0/token',
             headers=headers,
             data=f'client_id={self.clientid}&scope={scope}&refresh_token={self.refresh_token}&grant_type=refresh_token&client_secret={self.clientsecret}'
         )
@@ -49,7 +50,7 @@ class Msgraph:
         access_token = r.json()["access_token"]
         return access_token
 
-    def get_siteid(self, token, site) -> str | None:
+    def get_siteid(self, token: str, site: str) -> str | None:
         """
         Gets the id of the target site within your audience.
         
@@ -73,7 +74,7 @@ class Msgraph:
         else:
             return None
 
-    def get_driverid(self, token, siteid):
+    def get_driverid(self, token: str, siteid: str):
         """
         Gets the id of the target site id's root drive.
 
@@ -118,11 +119,15 @@ class Msgraph:
 
         Status code of response.
         """
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": content_type
-        }
+        if mimetype == "":
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
+        else:
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": mimetype
+            }
         
         filename = os.path.basename(filepath)
         
