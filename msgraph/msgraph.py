@@ -82,7 +82,9 @@ class Msgraph:
             case "outlook":
                 scope = "Mail.Read User.Read"
             case _:
-                raise Exception("Mode is invalid or not specified. Unable to get a scope. Please specify a mode.")
+                message = "Mode is invalid or not specified. Unable to get a scope. Please specify a mode."
+                return MsgraphError(message, None, None)
+                
         
         
         if not self.refresh_token or self.refresh_token == "":
