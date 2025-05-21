@@ -30,3 +30,7 @@ Issues = "https://github.com/killanj/project-msgraph/issues"
 
 [tool.setuptools]
 packages = ["py-ms-graph"]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
