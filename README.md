@@ -7,6 +7,7 @@ Before using this utility, make sure your app has user consent through Microsoft
 For further information, check the following documentation: 
 
 https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview
+
 https://learn.microsoft.com/en-us/graph/permissions-reference
 
 ## Features
