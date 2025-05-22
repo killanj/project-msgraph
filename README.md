@@ -6,9 +6,9 @@ upload files and send e-mails with attachments.
 Before using this utility, make sure your app has user consent through Microsoft, as well as Microsoft Graph permissions. 
 For further information, check the following documentation: 
 
-https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview
+[Microsoft Permissions Consent Overview](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview)
 
-https://learn.microsoft.com/en-us/graph/permissions-reference
+[Microsoft Permissions Reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
 
 ## Features
 
@@ -25,7 +25,9 @@ https://learn.microsoft.com/en-us/graph/permissions-reference
 Install the package via pip, like so:
 
 ```bash
+
 pip install msgraph-pywrap
+
 ```
 
 Setup the class like so:
