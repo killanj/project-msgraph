@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "py-ms-graph"
-version = "0.1.0"
+name = "msgraph-pywrap"
+version = "0.1.2"
 description = "Utility for abstracting connections to Microsoft's Graph API and Sharepoint."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,8 +29,5 @@ Repository = "https://github.com/killanj/project-msgraph"
 Issues = "https://github.com/killanj/project-msgraph/issues"
 
 [tool.setuptools]
-packages = ["py-ms-graph"]
-package-dir = {"" = "."}
-
-[tool.setuptools.packages.find]
-where = ["."]
+packages = ["msgraph"]
+package-dir = {"" = ".\\src"}
