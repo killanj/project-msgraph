@@ -2,23 +2,24 @@ import os
 import requests
 import base64
 
-# These are the error handling classes.
-# This is heavily inspired by Rust's Result<Ok, Err> behavior, in which objects are returned for graceful handling instead of raising exceptions.
-# If you want to raise an exception and halt the program anyway, just do a raise on MsgraphError or something. 
-# But if it was caused within the package as a bug or an oversight, please open an issue so I can take a look. Just remember I'm only 1 guy with not a lot of time.
-
-# Both classes contain a status code field for Microsoft's response, if any request has been sent, and a general descriptive message for each case.
-# They do also contain both "is_err" and "is_ok", because who knows which one you would prefer to use.
-# In the case of MsgraphError, it contains the response content in raw text in case there has been a request.
-# While in MsgraphResponse, "data" simply contains whatever data is supposed to come out of the funcion, e.g. the token.
+# The following two classes are Error and Success objects respectively. Each will contain:
+# 
+# A message field with a general description;
+# The API response's status code, if any;
+# The request content in case of failure (raw text, be advised), or the requested data (e.g, the token)
+#
+# Each class has a to_dict method, an is_err method and an is_ok method for debugging and logging
+# Though the classes guarantee that the Msgraph class itself doesn't halt, this assumes you've entered at least the correct number of arguments.
+# This is obvious, but also kind of a disclaimer, so you don't @ me if you get a raised exception for those reasons.
+# Any other types of bugs or halting behaviours, feel free to open up an issue.
 
 class MsgraphError:
     def __init__(self, message: str, status_code: int | None, response_content: str | None):
         self.message = message
         self.status_code = status_code
         self.response_content = response_content
-        self.is_err = True
         self.is_ok = False
+        self.is_err = True
     
     def __str__(self):
         return str({
@@ -30,7 +31,7 @@ class MsgraphError:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.response_content})"
     
-    def as_dict(self) -> dict:
+    def as_dict(self) -> str:
         return {
             "message": self.message,
             "status_code": self.status_code,
@@ -38,13 +39,13 @@ class MsgraphError:
         }
 
 class MsgraphResponse:
-    def __init__(self, message: str, status_code: int, data: any):
+    def __init__(self, message: str, status_code: int, data: str):
         self.message = message
         self.status_code = status_code
         self.data = data
-        self.is_err = False
         self.is_ok = True
-        
+        self.is_err = False
+    
     def __str__(self) -> str:
         return str({
             "message": self.message,
@@ -61,9 +62,10 @@ class MsgraphResponse:
             "status_code": self.status_code,
             "data": self.data
         }
-        
-# This is the main class, containing every method of this utility.
-# If you decide to give it a credentials dict with keys missing, the ensuing exception is on you.
+
+# This is the main class. All methods are callable.
+# This receives a dictionary of cradentials as well as the desired Sharepoint audience/domain.
+# Do make sure your refresh token is up to date.
 
 class Msgraph:
     def __init__(self, credentials: dict):
@@ -101,13 +103,13 @@ class Msgraph:
                 
         
         
-        if not self.refresh_token:
+        if not self.refresh_token or self.refresh_token == "":
             message = "Refresh token missing or invalid. Declare this class with a valid refresh token."
             return MsgraphError(message, None, None)
-        if not self.clientsecret:
+        if not self.clientsecret or self.clientsecret == "":
             message = "Client secret missing or invalid. Declare this class with a valid client secret."
             return MsgraphError(message, None, None)
-        if not self.tenantid:
+        if not self.tenantid or self.tenantid == "":
             message = "Tenant ID missing or invalid. Declare this class with a valid tenant ID."
             return MsgraphError(message, None, None)
         
@@ -157,7 +159,7 @@ class Msgraph:
         else:
             return MsgraphError(f"Failed to fetch siteid for {self.audience}/sites/{site}", response.status_code, response.text)
 
-    def get_driverid(self, token: str, siteid: str) -> MsgraphResponse | MsgraphError:
+    def get_driveid(self, token: str, siteid: str) -> MsgraphResponse | MsgraphError:
         """
         Gets the id of the target site id's root drive.
 
@@ -200,9 +202,9 @@ class Msgraph:
 
         Returns: 
 
-        On success: MsgraphResponse object
-
-        On fail: MsgraphError object
+        On success: MsgraphResponse object.
+        
+        On fail: MsgraphError object.
         """
         if mimetype:
             headers = {
@@ -257,6 +259,7 @@ class Msgraph:
         }
 
         body = {
+            "message": {
             "subject": subject,
             "body": {
                 "content": body
@@ -270,11 +273,12 @@ class Msgraph:
                 for email in target_emails
             ]
         }
+        }
         
         
         if attachments:
             try:
-                body["attachments"] = [
+                body["message"]["attachments"] = [
                     {
                         "@odata.type": "#microsoft.graph.fileAttachment",
                         "name": os.path.basename(attachment),
@@ -288,11 +292,11 @@ class Msgraph:
         response = requests.post(url, headers=headers, json=body)
 
         if response.ok:
-            return MsgraphResponse("Email sent successfully", response.status_code, response.json())
+            return MsgraphResponse("Email sent successfully", response.status_code, response.text)
         else:
             return MsgraphError("Failed to send email.", response.status_code, response.text)
         
-    def list_files_sharepoint(self, token: str, siteid: str, driverid: str, path: str = "") -> MsgraphResponse | MsgraphError:
+    def list_files_sharepoint(self, token: str, siteid: str, driveid: str, path: str = "") -> MsgraphResponse | MsgraphError:
         """
         Lists all files in a chosen Sharepoint folder.
         
@@ -314,16 +318,16 @@ class Msgraph:
         headers = {"Authorization": f"Bearer {token}"}
         
         if path:
-            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root:/{path}/children", headers=headers)
+            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driveid}/root:/{path}/children", headers=headers)
         else:
-            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root/children", headers=headers)
+            response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driveid}/root/children", headers=headers)
 
         if response.ok:
             return MsgraphResponse("Successfully retrieved files.", response.status_code, response.json())
         else:
             return MsgraphError("Failed to retrieve files.", response.status_code, response.text)
         
-    def download_file_sharepoint(self, token: str, siteid: str, driverid: str, path: str, filename: str, localpath: str) -> MsgraphResponse | MsgraphError:
+    def download_file_sharepoint(self, token: str, siteid: str, driveid: str, path: str, filename: str, localpath: str) -> MsgraphResponse | MsgraphError:
         """
         Downloads a file from Sharepoint.
         
@@ -350,10 +354,10 @@ class Msgraph:
         
         headers = {"Authorization": f"Bearer {token}"}
         
-        response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driverid}/root:/{path}{filename}:/content", headers=headers)
+        response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driveid}/root:/{path}{filename}:/content", headers=headers)
 
         if response.ok:
-            with open(f"{localpath}/{filename}", "wb") as file:
+            with open(f"{localpath}\\{filename}", "wb") as file:
                 file.write(response.content)
             return MsgraphResponse("Successfully downloaded file.", response.status_code, f"{localpath}/{filename}")
         else:
