@@ -37,7 +37,10 @@ class MsgraphError:
             "status_code": self.status_code,
             "response_content": self.response_content
         }
-
+    
+    def unwrap(self):
+        return self.response_content
+    
 class MsgraphResponse:
     def __init__(self, message: str, status_code: int, data: str):
         self.message = message
@@ -62,6 +65,9 @@ class MsgraphResponse:
             "status_code": self.status_code,
             "data": self.data
         }
+        
+    def unwrap(self):
+        return self.data
 
 # This is the main class. All methods are callable.
 # This receives a dictionary of cradentials as well as the desired Sharepoint audience/domain.
