@@ -20,3 +20,42 @@ https://learn.microsoft.com/en-us/graph/permissions-reference
 - Non-halting error handling: This module will attempt to return an error object instead of raising exceptions. If this is ever not the case, please let me know!
 
 ---
+## Usage
+
+Setup the class like so:
+
+```python
+from msgraph.msgraph import Msgraph
+
+credentials = {
+    "clientid": "foo",
+    "tenantid": "bar",
+    "clientsecret": "foz",
+    "audience": "foo.sharepoint.com",
+    "refresh_token": "bazbazbaz"
+}
+
+graph = Msgraph(credentials)
+```
+
+From here, you'll have access to the rest of the methods.
+
+For example, here's how you'd get an access token with the Graph API scope, with proper handling:
+
+```python
+token_response = graph.get_access_token("graph")
+
+if token_response.is_ok:
+    token = token_response.unwrap()
+else:
+    ...
+    # Process upon failure goes here:
+```
+
+Or, if you're sure all will be fine:
+
+```python
+token = graph.get_access_token("graph").data
+```
+
+Just remember to either unwrap the response, or get the "data" property of the success response in order to actually access the data you want to return.
