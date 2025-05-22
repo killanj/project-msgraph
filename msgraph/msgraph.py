@@ -189,7 +189,9 @@ class Msgraph:
 
         Returns: 
 
-        Status code of response.
+        On success: MsgraphResponse object
+
+        On fail: MsgraphError object
         """
         if mimetype:
             headers = {
