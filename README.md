@@ -66,7 +66,7 @@ Or, if you're sure all will be fine:
 token = graph.get_access_token("graph").data
 ```
 
-Just remember to either unwrap the response, or get the "data" property of the success response in order to actually access the data you want to return.
+Just remember to either _unwrap_ the response, or get the _data_ property of the success response in order to actually access the data you want to return.
 
 Let's send an e-mail through Outlook!
 
