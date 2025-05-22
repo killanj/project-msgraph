@@ -2,11 +2,23 @@ import os
 import requests
 import base64
 
+# These are the error handling classes.
+# This is heavily inspired by Rust's Result<Ok, Err> behavior, in which objects are returned for graceful handling instead of raising exceptions.
+# If you want to raise an exception and halt the program anyway, just do a raise on MsgraphError or something. 
+# But if it was caused within the package as a bug or an oversight, please open an issue so I can take a look. Just remember I'm only 1 guy with not a lot of time.
+
+# Both classes contain a status code field for Microsoft's response, if any request has been sent, and a general descriptive message for each case.
+# They do also contain both "is_err" and "is_ok", because who knows which one you would prefer to use.
+# In the case of MsgraphError, it contains the response content in raw text in case there has been a request.
+# While in MsgraphResponse, "data" simply contains whatever data is supposed to come out of the funcion, e.g. the token.
+
 class MsgraphError:
     def __init__(self, message: str, status_code: int | None, response_content: str | None):
         self.message = message
         self.status_code = status_code
         self.response_content = response_content
+        self.is_err = True
+        self.is_ok = False
     
     def __str__(self):
         return str({
@@ -18,22 +30,21 @@ class MsgraphError:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.response_content})"
     
-    def as_dict(self) -> str:
+    def as_dict(self) -> dict:
         return {
             "message": self.message,
             "status_code": self.status_code,
             "response_content": self.response_content
         }
-    
-    def is_err(self) -> bool:
-        return True
 
 class MsgraphResponse:
-    def __init__(self, message: str, status_code: int, data: str):
+    def __init__(self, message: str, status_code: int, data: any):
         self.message = message
         self.status_code = status_code
         self.data = data
-    
+        self.is_err = False
+        self.is_ok = True
+        
     def __str__(self) -> str:
         return str({
             "message": self.message,
@@ -50,9 +61,9 @@ class MsgraphResponse:
             "status_code": self.status_code,
             "data": self.data
         }
-    
-    def is_err(self) -> bool:
-        return False
+        
+# This is the main class, containing every method of this utility.
+# If you decide to give it a credentials dict with keys missing, the ensuing exception is on you.
 
 class Msgraph:
     def __init__(self, credentials: dict):
@@ -90,13 +101,13 @@ class Msgraph:
                 
         
         
-        if not self.refresh_token or self.refresh_token == "":
+        if not self.refresh_token:
             message = "Refresh token missing or invalid. Declare this class with a valid refresh token."
             return MsgraphError(message, None, None)
-        if not self.clientsecret or self.clientsecret == "":
+        if not self.clientsecret:
             message = "Client secret missing or invalid. Declare this class with a valid client secret."
             return MsgraphError(message, None, None)
-        if not self.tenantid or self.tenantid == "":
+        if not self.tenantid:
             message = "Tenant ID missing or invalid. Declare this class with a valid tenant ID."
             return MsgraphError(message, None, None)
         
@@ -213,9 +224,9 @@ class Msgraph:
         response = requests.put(url, headers=headers, data=content)
 
         if response.ok:
-            MsgraphResponse("File uploaded successfully", response.status_code, response.text)
+            return MsgraphResponse("File uploaded successfully", response.status_code, response.text)
         else:
-            MsgraphError("Failed to upload file.", response.status_code, response.text)
+            return MsgraphError("Failed to upload file.", response.status_code, response.text)
     
     def send_email(self, token: str, subject: str, body: str, target_emails: list[str], attachments: list[str] = None) -> MsgraphResponse | MsgraphError:
         """
