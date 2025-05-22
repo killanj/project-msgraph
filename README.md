@@ -22,6 +22,12 @@ https://learn.microsoft.com/en-us/graph/permissions-reference
 ---
 ## Usage
 
+Install the package via pip, like so:
+
+```bash
+pip install msgraph-pywrap
+```
+
 Setup the class like so:
 
 ```python
@@ -59,3 +65,43 @@ token = graph.get_access_token("graph").data
 ```
 
 Just remember to either unwrap the response, or get the "data" property of the success response in order to actually access the data you want to return.
+
+Let's send an e-mail through Outlook!
+
+```python
+from msgraph.msgraph import Msgraph
+
+credentials = {
+    "clientid": "foo",
+    "tenantid": "bar",
+    "clientsecret": "foz",
+    "audience": "foo.sharepoint.com",
+    "refresh_token": "bazbazbaz"
+}
+
+graph = Msgraph(credentials)
+
+token_response = graph.get_access_token("outlook")
+
+if token_response.is_ok:
+    token = token_response.unwrap()
+else:
+    ...
+    # Process error here:
+
+result_mail = graph.send_email(token, "any subject", "any message", ["target@emails.com"], ["path/to/attachment"])
+
+if result_mail.is_ok:
+    print("E-mail sent!")
+else:
+    ...
+    # Process error here:
+```
+
+Most functions will follow this pattern, read the docstrings for the parameters required.
+
+Any bugs found, feel free to open an issue.
+
+
+
+
