@@ -12,9 +12,11 @@ https://learn.microsoft.com/en-us/graph/permissions-reference
 
 ## Features
 
-- Acquire access tokens for Microsoft Graph or custom audiences
+- Acquire access tokens for Microsoft Graph, Outlook or custom audiences
 - Retrieve SharePoint site and drive IDs
 - Upload files to SharePoint document libraries
-- Non-halting error handling: This module will return an error object instead of raising any exceptions.
+- Send e-mails through parameters and a function, add N attachments, send to N e-mail addresses.
+- Download files from sharepoint folders
+- Non-halting error handling: This module will attempt to return an error object instead of raising exceptions. If this is ever not the case, please let me know!
 
 ---
