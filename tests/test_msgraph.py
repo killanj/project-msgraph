@@ -1,6 +1,6 @@
 import os
 import pytest
-from msgraph.msgraph import Msgraph
+from msgraph import Msgraph
 from unittest.mock import patch
 
 # This is the "tests" file for the project
