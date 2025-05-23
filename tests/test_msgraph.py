@@ -3,6 +3,7 @@ import pytest
 from msgraph.msgraph import Msgraph
 from unittest.mock import patch
 import platform
+import getpass
 
 # This is the "tests" file for the project
 # It's the first time I ever wrote any tests, be advised. Any untested cases, open an issue.
@@ -103,9 +104,9 @@ def test_download_file_sharepoint(test_creds):
     with patch("requests.get", side_effect=success_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop"
         else:
-            path = f"/home/{os.getlogin()}/Desktop"
+            path = f"/home/{getpass.getuser()}/Desktop"
         response = instance.download_file_sharepoint("77777777777777777777777", "CORRECT_SITE_ID", "CORRECT_DRIVE_ID", "testfolder", "test.txt", path)
         assert response.is_ok
 
@@ -113,9 +114,9 @@ def test_download_file_sharepoint_failure(test_creds):
     with patch("requests.get", side_effect=error_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop"
         else:
-            path = f"/home/{os.getlogin()}/Desktop"
+            path = f"/home/{getpass.getuser()}/Desktop"
         response = instance.download_file_sharepoint("WRONG_TOKEN", "WRONG_SITE_ID", "WRONG_DRIVE_ID", "testfolder", "test.txt", path)
         assert response.is_err
 
@@ -126,9 +127,9 @@ def test_upload_to_drive(test_creds):
     with patch("requests.put", side_effect=success_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop\\test.txt"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop\\test.txt"
         else:
-            path = f"/home/{os.getlogin()}/Desktop/test.txt"
+            path = f"/home/{getpass.getuser()}/Desktop/test.txt"
         response = instance.upload_to_drive("77777777777777777777777", "CORRECT_DRIVE_ID", path, "testfolder", "text/plain")
         assert response.is_ok
 
@@ -136,9 +137,9 @@ def test_upload_to_drive_failure(test_creds):
     with patch("requests.put", side_effect=error_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop\\test.txt"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop\\test.txt"
         else:
-            path = f"/home/{os.getlogin()}/Desktop/test.txt"
+            path = f"/home/{getpass.getuser()}/Desktop/test.txt"
         response = instance.upload_to_drive("WRONG_TOKEN", "WRONG_DRIVE_ID", path, "testfolder", "text/plain")
         assert response.is_err
 
@@ -149,9 +150,9 @@ def test_send_email(test_creds):
     with patch("requests.post", side_effect=success_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop\\test.txt"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop\\test.txt"
         else:
-            path = f"/home/{os.getlogin()}/Desktop/test.txt"
+            path = f"/home/{getpass.getuser()}/Desktop/test.txt"
         response = instance.send_email(
             "77777777777777777777777", 
             "About E-mail send tests...", 
@@ -165,9 +166,9 @@ def test_send_email_failure(test_creds):
     with patch("requests.post", side_effect=error_response):
         instance = Msgraph(credentials=test_creds)
         if platform.system() == "Windows":
-            path = f"C:\\Users\\{os.getlogin()}\\Desktop\\test.txt"
+            path = f"C:\\Users\\{getpass.getuser()}\\Desktop\\test.txt"
         else:
-            path = f"/home/{os.getlogin()}/Desktop/test.txt"
+            path = f"/home/{getpass.getuser()}/Desktop/test.txt"
         response = instance.send_email(
             "WRONG_TOKEN", 
             "About E-mail send tests...", 
