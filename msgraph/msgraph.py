@@ -1,6 +1,6 @@
+import base64
 import os
 import requests
-import base64
 
 # The following two classes are Error and Success objects respectively. Each will contain:
 # 
@@ -190,7 +190,7 @@ class Msgraph:
         else:
             return MsgraphError(f"Failed to fetch driver id for site id '{siteid}'.", response.status_code, response.text)
 
-    def upload_to_drive(self, token, driveid, filepath, destination, mimetype = "") -> MsgraphResponse | MsgraphError:
+    def upload_to_drive(self, token, driveid, filepath, destination = "", mimetype = "") -> MsgraphResponse | MsgraphError:
         """
         Uploads a file to Sharepoint.
 
@@ -202,7 +202,7 @@ class Msgraph:
 
         Path of the target file in your machine.
 
-        Destination folder path within Sharepoint (do NOT end with "/")
+        OPTIONAL: Destination folder path within Sharepoint. If not provided, the file will go into the root folder.
 
         OPTIONAL: Mime-type of the file. Microsoft can handle it in some cases, but other file formats may need their mime-types specified.
 
@@ -224,7 +224,7 @@ class Msgraph:
         
         filename = os.path.basename(filepath)
         
-        url = f"https://graph.microsoft.com/v1.0/drives/{driveid}/root:/{destination}/{filename}:/content"
+        url = f"https://graph.microsoft.com/v1.0/drives/{driveid}/root:/{destination}{filename}:/content"
         
         with open(filepath, "rb") as file:
             content = file.read()
@@ -363,8 +363,8 @@ class Msgraph:
         response = requests.get(f"https://graph.microsoft.com/v1.0/sites/{siteid}/drives/{driveid}/root:/{path}{filename}:/content", headers=headers)
 
         if response.ok:
-            with open(f"{localpath}\\{filename}", "wb") as file:
+            with open(os.path.join(localpath, filename), "wb") as file:
                 file.write(response.content)
-            return MsgraphResponse("Successfully downloaded file.", response.status_code, f"{localpath}/{filename}")
+            return MsgraphResponse("Successfully downloaded file.", response.status_code, os.path.join(localpath, filename))
         else:
             return MsgraphError("Failed to download file.", response.status_code, response.text)
