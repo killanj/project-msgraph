@@ -16,7 +16,7 @@ import requests
 class MsgraphError:
     def __init__(self, message: str, status_code: int | None, response_content: str | None):
         self.message = message
-        self.status_code = status_code
+        self.status_code = status_code # This can be empty. Sometimes this gets returned before an API call is made, upon which there's no HTTP status code.
         self.response_content = response_content
         self.is_ok = False
         self.is_err = True
@@ -29,9 +29,9 @@ class MsgraphError:
         })
         
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.response_content})"
+        return f"{self.__class__.__name__}({self.message!r}, {self.status_code!r}, {self.response_content!r})"
     
-    def as_dict(self) -> str:
+    def as_dict(self) -> dict:
         return {
             "message": self.message,
             "status_code": self.status_code,
@@ -57,7 +57,7 @@ class MsgraphResponse:
         })
     
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.message}, {self.status_code}, {self.data})"
+        return f"{self.__class__.__name__}({self.message!r}, {self.status_code!r}, {self.data!r})"
     
     def as_dict(self) -> dict:
         return {
