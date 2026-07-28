@@ -1,5 +1,6 @@
 import base64
 import os
+
 import requests
 
 # The following two classes are Error and Success objects respectively. Each will contain:
@@ -291,8 +292,8 @@ class Msgraph:
                     }
                     for attachment in attachments
                 ]
-            except Exception as e:
-                return MsgraphError(f"Failed to attach files: {e}", None, None) # noqa: BLE001 : This needs to be here to make absolutely sure this doesn't Raise and stop. 
+            except Exception as e: # noqa: BLE001 : This needs to be here to make absolutely sure this doesn't Raise and stop. 
+                return MsgraphError(f"Failed to attach files: {e}", None, None) 
 
         response = requests.post(url, headers=headers, json=body)
 
