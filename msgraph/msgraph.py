@@ -46,7 +46,7 @@ class MsgraphResponse:
         self.is_err = False
     
     def __str__(self) -> str:
-        return str(self.as_dict()})
+        return str(self.as_dict())
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message!r}, {self.status_code!r}, {self.data!r})"
