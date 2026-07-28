@@ -22,11 +22,7 @@ class MsgraphError:
         self.is_err = True
     
     def __str__(self):
-        return str({
-            "message": self.message,
-            "status_code": self.status_code,
-            "response_content": self.response_content
-        })
+        return str(self.as_dict())
         
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message!r}, {self.status_code!r}, {self.response_content!r})"
@@ -50,11 +46,7 @@ class MsgraphResponse:
         self.is_err = False
     
     def __str__(self) -> str:
-        return str({
-            "message": self.message,
-            "status_code": self.status_code,
-            "data": self.data
-        })
+        return str(self.as_dict()})
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message!r}, {self.status_code!r}, {self.data!r})"
