@@ -60,13 +60,13 @@ else:
     # Process upon failure goes here:
 ```
 
-Or, if you're sure all will be fine:
+Though you can do this:
 
 ```python
 token = graph.get_access_token("graph").data
 ```
 
-Just remember to either _unwrap_ the response, or get the _data_ property of the success response in order to actually access the data you want to return.
+I wouldn't. An Error object has no data attribute, making this a footgun. Check the flag before unwrapping.
 
 Let's send an e-mail through Outlook!
 
