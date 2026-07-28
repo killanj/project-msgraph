@@ -264,7 +264,7 @@ class Msgraph:
             "Accept": "application/json",
         }
 
-        body = {
+        req_body = {
             "message": {
             "subject": subject,
             "body": {
@@ -284,7 +284,7 @@ class Msgraph:
         
         if attachments:
             try:
-                body["message"]["attachments"] = [
+                req_body["message"]["attachments"] = [
                     {
                         "@odata.type": "#microsoft.graph.fileAttachment",
                         "name": os.path.basename(attachment),
@@ -295,7 +295,7 @@ class Msgraph:
             except Exception as e: # noqa: BLE001 : This needs to be here to make absolutely sure this doesn't Raise and stop. 
                 return MsgraphError(f"Failed to attach files: {e}", None, None) 
 
-        response = requests.post(url, headers=headers, json=body)
+        response = requests.post(url, headers=headers, json=req_body)
 
         if response.ok:
             return MsgraphResponse("Email sent successfully", response.status_code, response.text)
