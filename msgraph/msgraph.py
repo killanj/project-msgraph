@@ -61,6 +61,13 @@ class MsgraphResponse:
     def unwrap(self):
         return self.data
 
+
+# Helper function to handle attachments in the email method.
+
+def _read_attachment_as_base64(path: str) -> str:
+    with open(path, 'rb') as f:
+        return base64.b64encode(f.read()).decode('utf-8')
+
 # This is the main class. All methods are callable.
 # This receives a dictionary of cradentials as well as the desired Sharepoint audience/domain.
 # Do make sure your refresh token is up to date.
@@ -228,7 +235,7 @@ class Msgraph:
         else:
             return MsgraphError("Failed to upload file.", response.status_code, response.text)
     
-    def send_email(self, token: str, subject: str, body: str, target_emails: list[str], attachments: list[str] = None) -> MsgraphResponse | MsgraphError:
+    def send_email(self, token: str, subject: str, body: str, target_emails: list[str], attachments: list[str] | None = None) -> MsgraphResponse | MsgraphError:
         """
         Sends an email to the target user(s), with attachments if specified.
         If attachments are needed to be specified, they must be represented as a list of absolute paths to the files.
@@ -280,12 +287,12 @@ class Msgraph:
                     {
                         "@odata.type": "#microsoft.graph.fileAttachment",
                         "name": os.path.basename(attachment),
-                        "contentBytes": base64.b64encode(open(attachment, 'rb').read()).decode('utf-8')
+                        "contentBytes": _read_attachment_as_base64(attachment)
                     }
                     for attachment in attachments
                 ]
             except Exception as e:
-                return MsgraphError(f"Failed to attach files: {e}", None, None)
+                return MsgraphError(f"Failed to attach files: {e}", None, None) # noqa: BLE001 : This needs to be here to make absolutely sure this doesn't Raise and stop. 
 
         response = requests.post(url, headers=headers, json=body)
 
