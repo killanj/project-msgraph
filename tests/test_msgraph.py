@@ -1,9 +1,9 @@
-import platform
 import getpass
+import platform
+from unittest.mock import patch
 
 from msgraph.msgraph import Msgraph
 
-from unittest.mock import patch
 import pytest
 
 # This is the "tests" file for the project
