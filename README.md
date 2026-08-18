@@ -1,4 +1,4 @@
-[![msgraph-pywrap](https://github.com/killanj/project-msgraph/actions/workflows/python-package.yml/badge.svg)](https://github.com/killanj/project-msgraph/actions/workflows/python-package.yml)
+[![CI](https://github.com/killanj/project-msgraph/actions/workflows/python-package.yml/badge.svg)](https://github.com/killanj/project-msgraph/actions/workflows/python-package.yml)
 
 # Project Msgraph
 
