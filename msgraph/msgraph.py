@@ -4,14 +4,13 @@ import os
 import requests
 
 # The following two classes are Error and Success objects respectively. Each will contain:
-# 
+ 
 # A message field with a general description;
 # The API response's status code, if any;
 # The request content in case of failure (raw text, be advised), or the requested data (e.g, the token)
-#
+
 # Each class has a to_dict method, an is_err method and an is_ok method for debugging and logging
 # Though the classes guarantee that the Msgraph class itself doesn't halt, this assumes you've entered at least the correct number of arguments.
-# This is obvious, but also kind of a disclaimer, so you don't @ me if you get a raised exception for those reasons.
 # Any other types of bugs or halting behaviours, feel free to open up an issue.
 
 class MsgraphError:
